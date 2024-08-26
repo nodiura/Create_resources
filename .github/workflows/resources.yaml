@@ -1,0 +1,25 @@
+name: Create Resources
+on:
+  push:
+    branches:
+      - main  # Adjust this to your target branch
+jobs:
+  create_resources:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Change to your desired region
+    - name: Create EC2 Instance
+      run: |
+        INSTANCE_TYPE="t2.micro"  
+        AMI_ID="ami-066784287e358dad1"  
+        KEY_NAME="your-key-pair"  # Update with your EC2 Key Pair
+        SECURITY_GROUP="your-security-group"  # Update with your Security Group ID
+        INSTANCE_ID=$(aws ec2 run-instances --image-id $AMI_ID --instance-type $INSTANCE_TYPE --key-name $KEY_NAME --security-group-ids $SECURITY_GROUP --query 'Instances[0].InstanceId' --output text)
+        echo "EC2 Instance created: $INSTANCE_ID"
