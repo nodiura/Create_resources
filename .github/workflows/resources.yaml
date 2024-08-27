@@ -1,25 +1,53 @@
-name: Create Resources
+name: Create EC2 resource
+ 
+ 
 on:
+  
   push:
-    branches:
-      - main  # Adjust this to your target branch
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+ 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} # this is just a sensitive value bleongs to your repo
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: us-east-1
+ 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  create_resources:
+  # This workflow contains a single job called "build"
+  terraform:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+ 
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Configure AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # Change to your desired region
-    - name: Create EC2 Instance
-      run: |
-        INSTANCE_TYPE="t2.micro"  
-        AMI_ID="ami-066784287e358dad1"  
-        KEY_NAME="your-key-pair"  # Update with your EC2 Key Pair
-        SECURITY_GROUP="your-security-group"  # Update with your Security Group ID
-        INSTANCE_ID=$(aws ec2 run-instances --image-id $AMI_ID --instance-type $INSTANCE_TYPE --key-name $KEY_NAME --security-group-ids $SECURITY_GROUP --query 'Instances[0].InstanceId' --output text)
-        echo "EC2 Instance created: $INSTANCE_ID"
+      - uses: actions/checkout@v4
+      
+      - name: My First Terraform Setup
+        uses: hashicorp/setup-terraform@v1 # installs the terraform application
+        with:
+          cli_config_credentials_token: ${{ secrets.TERRAFORM_LOGIN_TOKEN }}
+      
+      - name: Run Terraform Init
+        run: terraform init
+ 
+      - name: Run Terraform Plan
+        run: terraform plan
+      
+      - name: Run Terraform Apply
+        run: terraform apply -auto-approve
+      
+      - name: Run Terraform Destroy
+        run: terraform destroy -auto-approve
+ 
+      # 1 Install terraform - COMPLETE
+      # 2 TERRAFORM LOGIN | copy a token and paste on our machine - COMPLETE
+      # 3 Authentication with AWS Account - COMPLETE
+ 
+#create 2 workflow for 1 repository
+#1 workflow creates your resources and it can be triggered on push event,
+#workflow #2 needs to be only on manual workflow dispatch and it needs to destroy
+ 
